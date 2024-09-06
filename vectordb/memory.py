@@ -64,6 +64,7 @@ class Memory:
         texts,
         metadata: Union[List, List[dict], None] = None,
         memory_file: str = None,
+        show_progress: bool = False,
     ):
         """
         Saves the given texts and metadata to memory.
@@ -71,6 +72,7 @@ class Memory:
         :param texts: a string or a list of strings containing the texts to be saved.
         :param metadata: a dictionary or a list of dictionaries containing the metadata associated with the texts.
         :param memory_file: a string containing the path to the memory file. (default: None)
+        :param show_progress: a boolean flag that shows the progress in computing embeddings. (default: False)
         """
 
         if not isinstance(texts, list):
@@ -110,13 +112,13 @@ class Memory:
         self.text_index_counter += len(texts)
 
         # accumulated size is end_index of each chunk
-        for size, end_index, chunks, meta_index, text_index in zip(
+        for size, end_index, chunks, meta_index, text_index in tqdm(zip(
             chunks_size,
             itertools.accumulate(chunks_size),
             text_chunks,
             range(meta_index_start, self.metadata_index_counter),
             range(text_index_start, self.text_index_counter),
-        ):
+        ), total=len(chunks_size), disable=not show_progress):
             start_index = end_index - size
             chunks_embedding = embeddings[start_index:end_index]
 
